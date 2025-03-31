@@ -59,7 +59,7 @@ func (c *RedisStore[V]) newMutex(ctx context.Context, key string) (*mutex, error
 func (m *mutex) TryLock(ctx context.Context) (bool, error) {
 	acquired, err := m.client.SetNX(ctx, m.key, m.val, m.lockExpiry).Result()
 	if err != nil {
-		return false, fmt.Errorf("failed to acquire lock: %w", err)
+		return false, fmt.Errorf("cachestore-redis: failed to acquire lock: %w", err)
 	}
 	if acquired {
 		m.wasLocked = true
@@ -92,7 +92,7 @@ func (m *mutex) Extend(ctx context.Context) error {
 		return err
 	}
 	if !expired {
-		return fmt.Errorf("unable to extend lock")
+		return fmt.Errorf("cachestore-redis: unable to extend lock")
 	}
 	return nil
 }

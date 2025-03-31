@@ -28,11 +28,11 @@ func NewCache[V any](cfg *Config, opts ...cachestore.StoreOptions) (*RedisStore[
 
 func newRedisStore[V any](cfg *Config, opts ...cachestore.StoreOptions) (*RedisStore[V], error) {
 	if !cfg.Enabled {
-		return nil, errors.New("cachestore/redis: attempting to create store while config.Enabled is false")
+		return nil, errors.New("cachestore-redis: attempting to create store while config.Enabled is false")
 	}
 
 	if cfg.Host == "" {
-		return nil, errors.New("cachestore/redis: missing \"host\" parameter")
+		return nil, errors.New("cachestore-redis: missing \"host\" parameter")
 	}
 	if cfg.Port < 1 {
 		cfg.Port = 6379
@@ -51,7 +51,7 @@ func newRedisStore[V any](cfg *Config, opts ...cachestore.StoreOptions) (*RedisS
 
 	err := store.client.Ping(context.Background()).Err()
 	if err != nil {
-		return nil, fmt.Errorf("cachestore/redis: unable to dial redis host %v: %w", address, err)
+		return nil, fmt.Errorf("cachestore-redis: unable to dial redis host %v: %w", address, err)
 	}
 
 	// Apply store options, where value set by options will take precedence over the default
@@ -73,7 +73,6 @@ type RedisStore[V any] struct {
 	options cachestore.StoreOptions
 	client  *redis.Client
 	random  io.Reader
-	// serializer Serializer[V]
 }
 
 var _ cachestore.Store[any] = &RedisStore[any]{}
@@ -99,10 +98,6 @@ func (c *RedisStore[V]) Name() string {
 	return "rediscache"
 }
 
-// func (m *RedisStore[V]) UseSerializer() bool {
-// 	return true
-// }
-
 func (c *RedisStore[V]) Set(ctx context.Context, key string, value V) error {
 	// call SetEx passing default keyTTL
 	return c.SetEx(ctx, key, value, c.options.DefaultKeyExpiry)
@@ -120,7 +115,7 @@ func (c *RedisStore[V]) SetEx(ctx context.Context, key string, value V, ttl time
 
 	data, err := serialize(value)
 	if err != nil {
-		return fmt.Errorf("unable to serialize object: %w", err)
+		return fmt.Errorf("cachestore-redis: unable to serialize object: %w", err)
 	}
 
 	if ttl > 0 {
@@ -129,7 +124,7 @@ func (c *RedisStore[V]) SetEx(ctx context.Context, key string, value V, ttl time
 		_, err = c.client.Set(ctx, key, data, 0).Result()
 	}
 	if err != nil {
-		return fmt.Errorf("unable to set key %s: %w", key, err)
+		return fmt.Errorf("cachestore-redis: unable to set key %s: %w", key, err)
 	}
 	return nil
 }
@@ -140,10 +135,10 @@ func (c *RedisStore[V]) BatchSet(ctx context.Context, keys []string, values []V)
 
 func (c *RedisStore[V]) BatchSetEx(ctx context.Context, keys []string, values []V, ttl time.Duration) error {
 	if len(keys) != len(values) {
-		return errors.New("keys and values are not the same length")
+		return errors.New("cachestore-redis: keys and values are not the same length")
 	}
 	if len(keys) == 0 {
-		return errors.New("no keys are passed")
+		return errors.New("cachestore-redis: no keys are passed")
 	}
 
 	pipeline := c.client.Pipeline()
@@ -154,7 +149,7 @@ func (c *RedisStore[V]) BatchSetEx(ctx context.Context, keys []string, values []
 	for i, key := range keys {
 		data, err := serialize(values[i])
 		if err != nil {
-			return fmt.Errorf("unable to serialize object: %w", err)
+			return fmt.Errorf("cachestore-redis: unable to serialize object: %w", err)
 		}
 
 		if ttl > 0 {
@@ -163,14 +158,14 @@ func (c *RedisStore[V]) BatchSetEx(ctx context.Context, keys []string, values []
 			err = pipeline.Set(ctx, key, data, 0).Err()
 		}
 		if err != nil {
-			return fmt.Errorf("failed writing key: %w", err)
+			return fmt.Errorf("cachestore-redis: failed writing key: %w", err)
 		}
 	}
 
 	// send all commands
 	_, err := pipeline.Exec(ctx)
 	if err != nil {
-		return fmt.Errorf("error encountered while batch-inserting value: %w", err)
+		return fmt.Errorf("cachestore-redis: error encountered while batch-inserting value: %w", err)
 	}
 
 	return nil
@@ -191,12 +186,12 @@ func (c *RedisStore[V]) GetEx(ctx context.Context, key string) (V, *time.Duratio
 				return err
 			}
 
-			return fmt.Errorf("exec: %w", err)
+			return fmt.Errorf("cachestore-redis: exec: %w", err)
 		}
 
 		ttlRes, err := getTTL.Result()
 		if err != nil {
-			return fmt.Errorf("TTL command failed: %w", err)
+			return fmt.Errorf("cachestore-redis: TTL command failed: %w", err)
 		}
 
 		if ttlRes == -1 {
@@ -207,12 +202,12 @@ func (c *RedisStore[V]) GetEx(ctx context.Context, key string) (V, *time.Duratio
 
 		data, err := getVal.Bytes()
 		if err != nil {
-			return fmt.Errorf("get bytes: %w", err)
+			return fmt.Errorf("cachestore-redis: get bytes: %w", err)
 		}
 
 		out, err = deserialize[V](data)
 		if err != nil {
-			return fmt.Errorf("deserialize: %w", err)
+			return fmt.Errorf("cachestore-redis: deserialize: %w", err)
 		}
 
 		return nil
@@ -223,42 +218,26 @@ func (c *RedisStore[V]) GetEx(ctx context.Context, key string) (V, *time.Duratio
 			return out, ttl, false, nil
 		}
 
-		return out, ttl, false, fmt.Errorf("GetEx: %w", err)
+		return out, ttl, false, fmt.Errorf("cachestore-redis: GetEx: %w", err)
 	}
 
 	return out, ttl, true, nil
 }
 
 func (c *RedisStore[V]) Get(ctx context.Context, key string) (V, bool, error) {
-	fmt.Println("redis get:", key)
 	var out V
 
-	fmt.Println("redis get1:", key)
 	data, err := c.client.Get(ctx, key).Bytes()
 	if err != nil && err != redis.Nil {
-		fmt.Println("redis get2:", key)
-
-		return out, false, fmt.Errorf("GET command failed: %w", err)
+		return out, false, fmt.Errorf("cachestore-redis: GET command failed: %w", err)
 	}
 	if data == nil {
 		return out, false, nil
 	}
 
-	// hmm.. in terms of the redis backends..
-	// we just need to share the connection, and nothing else
-	// ..
-
-	// if c.UseSerializer() {
-	// 	var v V
-	// 	panic("hi")
-	// 	return v, true, nil
-	// }
-
 	out, err = deserialize[V](data)
 	if err != nil {
-		fmt.Println("redis get:3", key)
-
-		return out, false, err
+		return out, false, fmt.Errorf("cachestore-redis: deserialize: %w", err)
 	}
 
 	return out, true, nil
@@ -268,7 +247,7 @@ func (c *RedisStore[V]) BatchGet(ctx context.Context, keys []string) ([]V, []boo
 	// execute MGET and convert result to []V
 	values, err := c.client.MGet(ctx, keys...).Result()
 	if err != nil {
-		return nil, nil, err
+		return nil, nil, fmt.Errorf("cachestore-redis: failed assertion")
 	}
 
 	// we should always return the same number of values as keys requested,
@@ -298,7 +277,7 @@ func (c *RedisStore[V]) BatchGet(ctx context.Context, keys []string) ([]V, []boo
 func (c *RedisStore[V]) Exists(ctx context.Context, key string) (bool, error) {
 	value, err := c.client.Exists(ctx, key).Result()
 	if err != nil {
-		return false, fmt.Errorf("EXISTS command failed: %w", err)
+		return false, fmt.Errorf("cachestore-redis: EXISTS command failed: %w", err)
 	}
 
 	if value == 1 {
@@ -313,7 +292,7 @@ func (c *RedisStore[V]) Delete(ctx context.Context, key string) error {
 
 func (c *RedisStore[V]) DeletePrefix(ctx context.Context, keyPrefix string) error {
 	if len(keyPrefix) < 4 {
-		return fmt.Errorf("cachestore/redis: DeletePrefix keyPrefix '%s' must be at least 4 characters long", keyPrefix)
+		return fmt.Errorf("cachestore-redis: DeletePrefix keyPrefix '%s' must be at least 4 characters long", keyPrefix)
 	}
 
 	keys := make([]string, 0, 1000)
@@ -328,7 +307,7 @@ func (c *RedisStore[V]) DeletePrefix(ctx context.Context, keyPrefix string) erro
 		start = false
 		results, cursor, err = c.client.Scan(ctx, cursor, fmt.Sprintf("%s*", keyPrefix), limit).Result()
 		if err != nil {
-			return fmt.Errorf("cachestore/redis: SCAN command returned unexpected result: %w", err)
+			return fmt.Errorf("cachestore-redis: SCAN command returned unexpected result: %w", err)
 		}
 		keys = append(keys, results...)
 	}
@@ -339,7 +318,7 @@ func (c *RedisStore[V]) DeletePrefix(ctx context.Context, keyPrefix string) erro
 
 	err = c.client.Unlink(ctx, keys...).Err()
 	if err != nil {
-		return fmt.Errorf("cachestore/redis: DeletePrefix UNLINK failed: %w", err)
+		return fmt.Errorf("cachestore-redis: DeletePrefix UNLINK failed: %w", err)
 	}
 
 	return nil
@@ -348,7 +327,7 @@ func (c *RedisStore[V]) DeletePrefix(ctx context.Context, keyPrefix string) erro
 func (c *RedisStore[V]) ClearAll(ctx context.Context) error {
 	// With redis, we do not support ClearAll as its too destructive. For testing
 	// use the memlru if you want to Clear All.
-	return fmt.Errorf("cachestore/redis: unsupported")
+	return fmt.Errorf("cachestore-redis: unsupported")
 }
 
 func (c *RedisStore[V]) GetOrSetWithLock(
@@ -364,7 +343,7 @@ func (c *RedisStore[V]) GetOrSetWithLockEx(
 
 	mu, err := c.newMutex(ctx, key)
 	if err != nil {
-		return out, fmt.Errorf("cachestore/redis: creating mutex failed: %w", err)
+		return out, fmt.Errorf("cachestore-redis: creating mutex failed: %w", err)
 	}
 	defer mu.Unlock()
 
@@ -381,14 +360,14 @@ func (c *RedisStore[V]) GetOrSetWithLockEx(
 		// Otherwise attempt to acquire a lock for writing
 		acquired, err := mu.TryLock(ctx)
 		if err != nil {
-			return out, fmt.Errorf("cachestore/redis: try lock failed: %w", err)
+			return out, fmt.Errorf("cachestore-redis: try lock failed: %w", err)
 		}
 		if acquired {
 			break
 		}
 
 		if err := mu.WaitForRetry(ctx, i); err != nil {
-			return out, fmt.Errorf("cachestore/redis: timed out waiting for lock: %w", err)
+			return out, fmt.Errorf("cachestore-redis: timed out waiting for lock: %w", err)
 		}
 	}
 
@@ -414,12 +393,12 @@ func (c *RedisStore[V]) GetOrSetWithLockEx(
 	// Retrieve a new value from the origin
 	out, err = getter(ctx, key)
 	if err != nil {
-		return out, fmt.Errorf("getter function failed: %w", err)
+		return out, fmt.Errorf("cachestore-redis: getter function failed: %w", err)
 	}
 
 	// Store the retrieved value in the cache
 	if err := c.SetEx(ctx, key, out, ttl); err != nil {
-		return out, err
+		return out, fmt.Errorf("cachestore-redis: SetEx: %w", err)
 	}
 
 	return out, nil
@@ -436,16 +415,6 @@ func (c *RedisStore[V]) ByteStore() cachestore.Store[[]byte] {
 	}
 }
 
-func (c *RedisStore[V]) Serialize(value any) (V, error) {
-	var v V
-	return v, nil
-}
-
-func (c *RedisStore[V]) Deserialize(data []byte) (V, error) {
-	var v V
-	return v, nil
-}
-
 func serialize[V any](value V) ([]byte, error) {
 	// return the value directly if the type is a []byte or string,
 	// otherwise assume its json and unmarshal it
@@ -455,15 +424,16 @@ func serialize[V any](value V) ([]byte, error) {
 	case []byte:
 		return v, nil
 	default:
-		return json.Marshal(value) // wrap the error
+		out, err := json.Marshal(value)
+		if err != nil {
+			return nil, fmt.Errorf("cachestore-redis: failed to marshal data: %w", err)
+		}
+		return out, nil
 	}
 }
 
 func deserialize[V any](data []byte) (V, error) {
 	var out V
-
-	// spew.Dump(data)
-	// spew.Dump(out)
 
 	switch any(out).(type) {
 	case string:
@@ -474,72 +444,11 @@ func deserialize[V any](data []byte) (V, error) {
 		outv := reflect.ValueOf(&out).Elem()
 		outv.SetBytes(data)
 		return out, nil
-	// case *any:
-	// 	panic("wee")
 	default:
 		err := json.Unmarshal(data, &out)
 		if err != nil {
-			return out, fmt.Errorf("rediscache:failed to unmarshal data: %w", err)
+			return out, fmt.Errorf("cachestore-redis: failed to unmarshal data: %w", err)
 		}
 		return out, nil
 	}
 }
-
-/*func serialize[V any](value V) ([]byte, error) {
-	// return the value directly if the type is a []byte or string,
-	// otherwise assume its json and unmarshal it
-	switch v := any(value).(type) {
-	case string:
-		return []byte(v), nil
-	case []byte:
-		return v, nil
-	default:
-		panic("mmm")
-		return json.Marshal(value) // wrap the error
-	}
-}
-
-func deserialize[V any](data []byte) (V, error) {
-	var out V
-
-	// spew.Dump(data)
-	// spew.Dump(out)
-
-	switch any(out).(type) {
-	case string:
-		outv := reflect.ValueOf(&out).Elem()
-		outv.SetString(string(data))
-		return out, nil
-	case []byte:
-		outv := reflect.ValueOf(&out).Elem()
-		outv.SetBytes(data)
-		return out, nil
-	case *any:
-		panic("wee")
-	default:
-		panic("json? no")
-		t := reflect.TypeOf(&out)
-		fmt.Println("t:", t)
-
-		err := json.Unmarshal(data, &out)
-		if err != nil {
-			return out, fmt.Errorf("rediscache:failed to unmarshal data: %w", err)
-		}
-		return out, nil
-	}
-}*/
-
-// type Serializer[T any] struct {
-// }
-
-// func (s *Serializer[T]) Serialize(value any) (T, error) {
-// 	var v T
-// 	return v, nil
-// }
-
-// func (s *Serializer[T]) Deserialize(data []byte) (T, error) {
-// 	var v T
-// 	return v, nil
-// }
-
-// type ByteSerializer Serializer[[]byte]
