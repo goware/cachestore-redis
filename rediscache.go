@@ -7,7 +7,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"reflect"
 	"time"
 
 	"github.com/goware/cachestore"
@@ -434,15 +433,13 @@ func serialize[V any](value V) ([]byte, error) {
 
 func deserialize[V any](data []byte) (V, error) {
 	var out V
-
 	switch any(out).(type) {
 	case string:
-		outv := reflect.ValueOf(&out).Elem()
-		outv.SetString(string(data))
+		str := string(data)
+		out = any(str).(V)
 		return out, nil
 	case []byte:
-		outv := reflect.ValueOf(&out).Elem()
-		outv.SetBytes(data)
+		out = any(data).(V)
 		return out, nil
 	default:
 		err := json.Unmarshal(data, &out)
