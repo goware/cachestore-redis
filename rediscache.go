@@ -170,59 +170,6 @@ func (c *RedisStore[V]) BatchSetEx(ctx context.Context, keys []string, values []
 	return nil
 }
 
-func (c *RedisStore[V]) GetEx(ctx context.Context, key string) (V, *time.Duration, bool, error) {
-	var out V
-	var ttl *time.Duration
-
-	_, err := c.client.TxPipelined(ctx, func(pipe redis.Pipeliner) error {
-		var err error
-
-		getVal := pipe.Get(ctx, key)
-		getTTL := pipe.TTL(ctx, key)
-
-		if _, err = pipe.Exec(ctx); err != nil {
-			if errors.Is(err, redis.Nil) {
-				return err
-			}
-
-			return fmt.Errorf("cachestore-redis: exec: %w", err)
-		}
-
-		ttlRes, err := getTTL.Result()
-		if err != nil {
-			return fmt.Errorf("cachestore-redis: TTL command failed: %w", err)
-		}
-
-		if ttlRes == -1 {
-			ttl = nil
-		} else {
-			ttl = &ttlRes
-		}
-
-		data, err := getVal.Bytes()
-		if err != nil {
-			return fmt.Errorf("cachestore-redis: get bytes: %w", err)
-		}
-
-		out, err = deserialize[V](data)
-		if err != nil {
-			return fmt.Errorf("cachestore-redis: deserialize: %w", err)
-		}
-
-		return nil
-	})
-
-	if err != nil {
-		if errors.Is(err, redis.Nil) {
-			return out, ttl, false, nil
-		}
-
-		return out, ttl, false, fmt.Errorf("cachestore-redis: GetEx: %w", err)
-	}
-
-	return out, ttl, true, nil
-}
-
 func (c *RedisStore[V]) Get(ctx context.Context, key string) (V, bool, error) {
 	var out V
 

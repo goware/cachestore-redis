@@ -253,31 +253,3 @@ func TestGetOrSetWithLock(t *testing.T) {
 		}
 	}
 }
-
-func TestGetEx(t *testing.T) {
-	ctx := context.Background()
-
-	cache, err := NewCache[string](&Config{Enabled: true, Host: "localhost"}, cachestore.WithDefaultKeyExpiry(-1*time.Second))
-	require.NoError(t, err)
-
-	err = cache.SetEx(ctx, "hi", "bye", 10*time.Second)
-	require.NoError(t, err)
-
-	v, ttl, exists, err := cache.GetEx(ctx, "hi")
-	require.NoError(t, err)
-	require.True(t, exists)
-	require.InDelta(t, 10*time.Second, *ttl, float64(1*time.Second), "TTL are not equal within the allowed delta")
-	require.Equal(t, "bye", v)
-
-	v, ttl, exists, err = cache.GetEx(ctx, "not-found")
-	require.NoError(t, err)
-	require.False(t, exists)
-	require.Nil(t, ttl)
-
-	err = cache.Set(ctx, "without-ttl", "hello")
-	require.NoError(t, err)
-
-	v, ttl, exists, err = cache.GetEx(ctx, "without-ttl")
-	require.NoError(t, err)
-	require.Nil(t, ttl)
-}
