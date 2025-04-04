@@ -97,6 +97,10 @@ func (c *RedisStore[V]) Name() string {
 	return "rediscache"
 }
 
+func (c *RedisStore[V]) Options() cachestore.StoreOptions {
+	return c.options
+}
+
 func (c *RedisStore[V]) Set(ctx context.Context, key string, value V) error {
 	// call SetEx passing default keyTTL
 	return c.SetEx(ctx, key, value, c.options.DefaultKeyExpiry)

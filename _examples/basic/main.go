@@ -5,23 +5,23 @@ import (
 	"fmt"
 	"time"
 
-	redis "github.com/goware/cachestore-redis"
+	rediscache "github.com/goware/cachestore-redis"
 	cachestore "github.com/goware/cachestore2"
 )
 
 func main() {
-	cfg := &redis.Config{
+	cfg := &rediscache.Config{
 		Enabled: true,
 		Host:    "localhost",
 		Port:    6379,
 	}
 
-	backend := redis.Backend(cfg) //, cachestore.WithDefaultKeyExpiry(1*time.Second))
-
-	store, err := cachestore.Open[string](backend, cachestore.WithDefaultKeyExpiry(1*time.Second))
+	backend, err := rediscache.NewBackend(cfg) //, cachestore.WithDefaultKeyExpiry(1*time.Second))
 	if err != nil {
 		panic(err)
 	}
+
+	store := cachestore.OpenStore[string](backend, cachestore.WithDefaultKeyExpiry(1*time.Second))
 
 	ctx := context.Background()
 
