@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/goware/cachestore"
 	redis "github.com/goware/cachestore-redis"
 	"github.com/goware/cachestore/memlru"
+	cachestore "github.com/goware/cachestore2"
 )
 
 func main() {

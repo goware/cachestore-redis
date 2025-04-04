@@ -9,7 +9,7 @@ import (
 	"io"
 	"time"
 
-	"github.com/goware/cachestore"
+	cachestore "github.com/goware/cachestore2"
 	"github.com/redis/go-redis/v9"
 )
 

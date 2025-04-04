@@ -3,7 +3,7 @@ package rediscache
 import (
 	"time"
 
-	"github.com/goware/cachestore"
+	cachestore "github.com/goware/cachestore2"
 )
 
 type Config struct {

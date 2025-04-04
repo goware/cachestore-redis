@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/goware/cachestore"
 	redis "github.com/goware/cachestore-redis"
+	cachestore "github.com/goware/cachestore2"
 )
 
 func main() {
