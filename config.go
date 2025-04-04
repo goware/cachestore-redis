@@ -16,7 +16,3 @@ type Config struct {
 	MaxActive int           `toml:"max_active"` // default 8
 	KeyTTL    time.Duration `toml:"key_ttl"`    // default 1 day
 }
-
-func (c *Config) Apply(options *cachestore.StoreOptions) {
-	c.StoreOptions.Apply(options)
-}
