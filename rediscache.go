@@ -17,8 +17,8 @@ const DefaultTTL = time.Second * 24 * 60 * 60 // 1 day in seconds
 
 var _ cachestore.Store[any] = &RedisStore[any]{}
 
-func NewBackend(cfg *Config, opts ...cachestore.StoreOptions) (cachestore.Backend, error) {
-	return newRedisStore[any](cfg, opts...)
+func NewBackend(cfg *Config, opts ...cachestore.StoreOptions) (cachestore.Backend[[]byte], error) {
+	return newRedisStore[[]byte](cfg, opts...)
 }
 
 func NewCache[V any](cfg *Config, opts ...cachestore.StoreOptions) (*RedisStore[V], error) {
@@ -356,13 +356,6 @@ func (c *RedisStore[V]) GetOrSetWithLockEx(
 
 func (c *RedisStore[V]) RedisClient() *redis.Client {
 	return c.client
-}
-
-func (c *RedisStore[V]) ByteStore() cachestore.Store[[]byte] {
-	return &RedisStore[[]byte]{
-		client: c.client,
-		random: c.random,
-	}
 }
 
 func serialize[V any](value V) ([]byte, error) {

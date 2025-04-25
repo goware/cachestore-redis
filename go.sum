@@ -10,6 +10,10 @@ github.com/dgryski/go-rendezvous v0.0.0-20200823014737-9f7001d12a5f h1:lO4WD4F/r
 github.com/dgryski/go-rendezvous v0.0.0-20200823014737-9f7001d12a5f/go.mod h1:cuUVRXasLTGF7a8hSLbxyZXjz+1KgoB3wDUb6vlszIc=
 github.com/goware/cachestore2 v0.12.2 h1:04YGXkMwbH1xe82siCO7iaPhetntRABN5fWhBKEzduY=
 github.com/goware/cachestore2 v0.12.2/go.mod h1:PR+lXK8UXa/wjKB7mpIj6HtRhC7vbcRXx4b5F1Av/ik=
+github.com/goware/cachestore2 v0.12.3-0.20250425075357-00f04d97d0fe h1:bfWeqUtK//A9OQ3qP20pR1iQCZadSlWHW4C54afxdrw=
+github.com/goware/cachestore2 v0.12.3-0.20250425075357-00f04d97d0fe/go.mod h1:PR+lXK8UXa/wjKB7mpIj6HtRhC7vbcRXx4b5F1Av/ik=
+github.com/goware/cachestore2 v0.12.3-0.20250425080306-f883c7fb563a h1:Rg5/uj1niF/SJv4q9oI8HsokLbfC56u65SYZEHojRdY=
+github.com/goware/cachestore2 v0.12.3-0.20250425080306-f883c7fb563a/go.mod h1:PR+lXK8UXa/wjKB7mpIj6HtRhC7vbcRXx4b5F1Av/ik=
 github.com/pmezard/go-difflib v1.0.0 h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZbAQM=
 github.com/pmezard/go-difflib v1.0.0/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZNVY4sRDYZ/4=
 github.com/redis/go-redis/v9 v9.7.3 h1:YpPyAayJV+XErNsatSElgRZZVCwXX9QzkKYNvO7x0wM=
