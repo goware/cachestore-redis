@@ -14,6 +14,10 @@ github.com/goware/cachestore2 v0.12.3-0.20250425075357-00f04d97d0fe h1:bfWeqUtK/
 github.com/goware/cachestore2 v0.12.3-0.20250425075357-00f04d97d0fe/go.mod h1:PR+lXK8UXa/wjKB7mpIj6HtRhC7vbcRXx4b5F1Av/ik=
 github.com/goware/cachestore2 v0.12.3-0.20250425080306-f883c7fb563a h1:Rg5/uj1niF/SJv4q9oI8HsokLbfC56u65SYZEHojRdY=
 github.com/goware/cachestore2 v0.12.3-0.20250425080306-f883c7fb563a/go.mod h1:PR+lXK8UXa/wjKB7mpIj6HtRhC7vbcRXx4b5F1Av/ik=
+github.com/goware/cachestore2 v0.12.3-0.20250425125611-2f9758633cac h1:89aTqXNkcOTpARTWedz81VElMKTwJA9tduZkaxC6dYQ=
+github.com/goware/cachestore2 v0.12.3-0.20250425125611-2f9758633cac/go.mod h1:PR+lXK8UXa/wjKB7mpIj6HtRhC7vbcRXx4b5F1Av/ik=
+github.com/goware/cachestore2 v0.12.3-0.20250425125906-78993e19404a h1:hy11QKZWqL9RmervoKvEJHk8mbefF1wdZZwnxldy0BQ=
+github.com/goware/cachestore2 v0.12.3-0.20250425125906-78993e19404a/go.mod h1:PR+lXK8UXa/wjKB7mpIj6HtRhC7vbcRXx4b5F1Av/ik=
 github.com/pmezard/go-difflib v1.0.0 h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZbAQM=
 github.com/pmezard/go-difflib v1.0.0/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZNVY4sRDYZ/4=
 github.com/redis/go-redis/v9 v9.7.3 h1:YpPyAayJV+XErNsatSElgRZZVCwXX9QzkKYNvO7x0wM=
