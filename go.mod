@@ -5,7 +5,7 @@ go 1.23.0
 // replace github.com/goware/cachestore2 => ../cachestore2
 
 require (
-	github.com/goware/cachestore2 v0.12.3-0.20250425125906-78993e19404a
+	github.com/goware/cachestore2 v0.12.3-0.20250429093919-f61f467363b6
 	github.com/redis/go-redis/v9 v9.7.3
 	github.com/stretchr/testify v1.10.0
 	golang.org/x/sync v0.13.0

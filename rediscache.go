@@ -17,7 +17,7 @@ const DefaultTTL = time.Second * 24 * 60 * 60 // 1 day in seconds
 
 var _ cachestore.Store[any] = &RedisStore[any]{}
 
-func NewBackend(cfg *Config, opts ...cachestore.StoreOptions) (cachestore.BackendBytes, error) {
+func NewBackend(cfg *Config, opts ...cachestore.StoreOptions) (cachestore.BackendTyped[[]byte], error) {
 	return newRedisStore[[]byte](cfg, opts...)
 }
 
@@ -99,6 +99,10 @@ func (c *RedisStore[V]) Name() string {
 
 func (c *RedisStore[V]) Options() cachestore.StoreOptions {
 	return c.options
+}
+
+func (c *RedisStore[V]) Type() cachestore.BackendType {
+	return cachestore.BackendTypeBytes
 }
 
 func (c *RedisStore[V]) Set(ctx context.Context, key string, value V) error {
