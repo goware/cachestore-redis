@@ -101,7 +101,7 @@ func (c *RedisStore[V]) Options() cachestore.StoreOptions {
 	return c.options
 }
 
-func (c *RedisStore[V]) Type() cachestore.BackendType {
+func (c *RedisStore[V]) BackendType() cachestore.BackendType {
 	return cachestore.BackendTypeBytes
 }
 
