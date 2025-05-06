@@ -258,45 +258,59 @@ func TestBackend(t *testing.T) {
 	backend, err := NewBackend(&Config{Enabled: true, Host: "localhost"})
 	require.NoError(t, err)
 
-	cache := cachestore.OpenStore[string](backend)
+	t.Run("basic", func(t *testing.T) {
+		cache := cachestore.OpenStore[string](backend)
 
-	{
-		err = cache.Set(context.Background(), "key", "value")
+		{
+			err = cache.Set(context.Background(), "key", "value")
+			require.NoError(t, err)
+
+			value, exists, err := cache.Get(context.Background(), "key")
+			require.NoError(t, err)
+			require.True(t, exists)
+			require.Equal(t, "value", value)
+
+			err = cache.Delete(context.Background(), "key")
+			require.NoError(t, err)
+
+			value, exists, err = cache.Get(context.Background(), "key")
+			require.NoError(t, err)
+			require.False(t, exists)
+			require.Equal(t, "", value)
+		}
+
+		{
+			keys := []string{"akey1", "akey2", "akey3"}
+			values := []string{"avalue1", "avalue2", "avalue3"}
+			err = cache.BatchSet(context.Background(), keys, values)
+			require.NoError(t, err)
+
+			batch, exists, err := cache.BatchGet(context.Background(), keys)
+			require.NoError(t, err)
+			require.Equal(t, values, batch)
+			require.Equal(t, []bool{true, true, true}, exists)
+
+			err = cache.DeletePrefix(context.Background(), "akey")
+			require.NoError(t, err)
+
+			batch, exists, err = cache.BatchGet(context.Background(), keys)
+			require.NoError(t, err)
+			require.Equal(t, []string{"", "", ""}, batch)
+			require.Equal(t, []bool{false, false, false}, exists)
+		}
+	})
+
+	t.Run("type: []byte", func(t *testing.T) {
+		cache := cachestore.OpenStore[[]byte](backend)
+
+		err = cache.Set(context.Background(), "bkey", []byte(`hello "world"`))
 		require.NoError(t, err)
 
-		value, exists, err := cache.Get(context.Background(), "key")
+		value, exists, err := cache.Get(context.Background(), "bkey")
 		require.NoError(t, err)
 		require.True(t, exists)
-		require.Equal(t, "value", value)
-
-		err = cache.Delete(context.Background(), "key")
-		require.NoError(t, err)
-
-		value, exists, err = cache.Get(context.Background(), "key")
-		require.NoError(t, err)
-		require.False(t, exists)
-		require.Equal(t, "", value)
-	}
-
-	{
-		keys := []string{"akey1", "akey2", "akey3"}
-		values := []string{"avalue1", "avalue2", "avalue3"}
-		err = cache.BatchSet(context.Background(), keys, values)
-		require.NoError(t, err)
-
-		batch, exists, err := cache.BatchGet(context.Background(), keys)
-		require.NoError(t, err)
-		require.Equal(t, values, batch)
-		require.Equal(t, []bool{true, true, true}, exists)
-
-		err = cache.DeletePrefix(context.Background(), "akey")
-		require.NoError(t, err)
-
-		batch, exists, err = cache.BatchGet(context.Background(), keys)
-		require.NoError(t, err)
-		require.Equal(t, []string{"", "", ""}, batch)
-		require.Equal(t, []bool{false, false, false}, exists)
-	}
+		require.Equal(t, []byte(`hello "world"`), value)
+	})
 }
 
 func TestBackendGetOrSetWithLock(t *testing.T) {
